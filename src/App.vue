@@ -1,84 +1,104 @@
 <script>
 import axios from 'axios'
-
+const key = import.meta.env.VUE_APP_API_KEY
+const token = import.meta.env.VUE_APP_API_TOKEN
 export default {
+    name: 'search',
     data() {
         return {
             movie: {},
+            query: '',
+            results: '',
         }
     },
     mounted() {
+        // Definisikan URL dan opsi
+        const url =
+            'https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc'
+        const options = {
+            headers: {
+                accept: 'application/json',
+                Authorization: token,
+            },
+        }
+
+        // Gunakan Axios untuk melakukan permintaan HTTP
         axios
-            .get(
-                'https://api.themoviedb.org/3/discover/movie?api_key=1faf3d5b91fec6bf481a8927461e1814'
-            )
-            .then((dataMovie) => {
-                console.log((this.movie = dataMovie.data.results))
+            .get(url, options)
+            .then((response) => {this.movie = response.data.results})
+            .catch((error) => {
+                console.error(error)
             })
+    },
+    methods: {
+        searchMovie(query) {
+            const options = {
+                method: 'GET',
+                headers: {
+                    accept: 'application/json',
+                    Authorization: token,
+                },
+            }
+
+            fetch(
+                `https://api.themoviedb.org/3/search/movie?query=${query}&include_adult=false&language=en-US&page=1`,
+                options
+            )
+                .then((response) => response.json())
+                .then((response) => (this.results = response.results))
+                .catch((err) => console.error(err))
+        },
     },
 }
 </script>
 
 <template>
     <div class="w-full h-screen">
-        <div class="grid place-items-end w-full h-5/6">
+        <div>
+            <form
+                @submit.prevent="searchMovie(query)"
+                class="w-full flex justify-center items-center lg:mt-20 mt-8">
+                <input
+                    type="text"
+                    v-model="query"
+                    placeholder="search movie"
+                    class="m-4 p-4 lg:w-1/3 rounded-full outline-none bg-gray-800 text-white w-56" />
+                <input
+                    type="submit"
+                    value="search"
+                    class="bg-gray-900 text-white lg:w-28 w-24 rounded-full h-12 cursor-pointer" />
+            </form>
+        </div>
+
+        <div
+            v-if="results.length > 0"
+            class="grid lg:grid-cols-4 md:grid-cols-3 grid-cols-2 gap-2 justify-items-center mx-auto px-4 lg:px-60">
             <div
-                class="w-full border-r-gray-500 grid justify-items-start pl-24 z-20">
-                <div class="flex mt-0 gap-10">
-                    <div>
-                        <div v-for="(image, index) in movie">
-                            <img
-                                v-if="index === 0"
-                                class="w-[60rem] h-[28rem] object-cover"
-                                :src="`http://image.tmdb.org/t/p/w500/${image.poster_path}`"
-                                alt="" />
-                        </div>
-                    </div>
-                    <div v-for="(item, index) in movie">
-                        <p class="text-2xl mb-10" v-if="index === 0">
-                            {{ item.title }}
-                        </p>
-                        <p class="text-2xl mb-10" v-if="index === 0">
-                            {{ item.original_language }}
-                        </p>
-                        <p class="text-2xl mb-10" v-if="index === 0">
-                            {{ item.overview }}
-                        </p>
-                        <p class="text-2xl mb-10" v-if="index === 0">
-                            {{ item.popularity }}
-                        </p>
-                        <p class="text-2xl mb-10" v-if="index === 0">
-                            {{ item.vote_average }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div
-                v-for="(img, index) in movie"
-                class="bg-black absolute top-0 w-screen">
+                class="w-full lg:h-[32rem] h-[28rem] lg:mt-20 mt-8 px-4"
+                v-for="list in results">
                 <img
-                    v-if="index === 0"
-                    :src="`http://image.tmdb.org/t/p/w500/${img.backdrop_path}`"
-                    class="h-[49.5rem] w-screen right-0 object-cover"
-                    alt="" />
-            </div>
-            <div
-                class="grid grid-cols-3 gap-2 w-[28rem] h-[14rem] mx-4 -mt-60 z-10">
-                <div class="w-full h-full" v-for="(img, index) in movie">
-                    <img
-                        v-if="index < 3"
-                        :src="`http://image.tmdb.org/t/p/w500/${img.poster_path}`"
-                        alt="" />
-                </div>
+                    :src="`http://image.tmdb.org/t/p/w500/${list.poster_path}`"
+                    :alt="list.title"
+                    class="w-full lg:h-[30rem] h-[16rem]" />
+                <h1 class="mt-4 font-medium text-lg text-black">
+                    {{ list.title }}
+                </h1>
+                <h1 class="text-lg text-black">
+                    Rating {{ list.vote_average }}
+                </h1>
             </div>
         </div>
 
-        <div class="grid grid-cols-4 gap-2 justify-items-center mx-auto px-60">
-            <div class="w-full h-[32rem] mt-20 px-4" v-for="item in movie">
+        <div
+            v-else
+            class="grid lg:grid-cols-4 md:grid-cols-3 grid-cols-2 gap-2 justify-items-center mx-auto px-4 lg:px-60">
+            <div
+                class="w-full lg:h-[32rem] h-[28rem] lg:mt-20 mt-8 px-4"
+                v-for="item in movie">
                 <img
                     :src="`http://image.tmdb.org/t/p/w500/${item.poster_path}`"
                     :alt="item.title"
-                    class="w-full h-[30rem]" />
+                    class="w-full lg:h-[30rem] h-[16rem]" />
                 <h1 class="mt-4 font-medium text-lg text-black">
                     {{ item.title }}
                 </h1>
