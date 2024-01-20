@@ -2,6 +2,7 @@
 import axios from 'axios'
 const key = import.meta.env.VUE_APP_API_KEY
 const token = import.meta.env.VUE_APP_API_TOKEN
+const vToken = import.meta.env.vercelToken
 export default {
     name: 'search',
     data() {
@@ -18,7 +19,7 @@ export default {
         const options = {
             headers: {
                 accept: 'application/json',
-                Authorization: token,
+                Authorization: 'Bearer' +token,
             },
         }
 
@@ -36,7 +37,7 @@ export default {
                 method: 'GET',
                 headers: {
                     accept: 'application/json',
-                    Authorization: token,
+                    Authorization: 'Bearer' +token,
                 },
             }
 
